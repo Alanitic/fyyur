@@ -1,14 +1,28 @@
+import re
+import phonenumbers
 from datetime import datetime
 from flask_wtf import Form
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField
-from wtforms.validators import DataRequired, AnyOf, URL
+from wtforms.validators import DataRequired, AnyOf, URL, Optional, Regexp, ValidationError
+
+def isValidPhone(form, field):
+	if not re.search(r"^[0-9]{3}-[0-9]{3}-[0-9]{4}$", field.data) and int(field.data) > 10:
+		raise ValidationError("Invalid phone number.")
+
+def isValidPhoneState(form, field):
+    try:
+        input_number = phonenumbers.parse(field.data, 'US')
+        if not phonenumbers.is_possible_number(input_number):
+            raise ValidationError('Invalid phone number.')
+    except Exception as e:
+        raise ValidationError(e.args)
 
 class ShowForm(Form):
     artist_id = StringField(
-        'artist_id'
+        'artist_id', validators=[DataRequired()]
     )
     venue_id = StringField(
-        'venue_id'
+        'venue_id', validators=[DataRequired()]
     )
     start_time = DateTimeField(
         'start_time',
@@ -83,10 +97,10 @@ class VenueForm(Form):
         'address', validators=[DataRequired()]
     )
     phone = StringField(
-        'phone'
+        'phone', validators=[Optional(), isValidPhone, isValidPhoneState]
     )
     image_link = StringField(
-        'image_link'
+        'image_link', validators=[Optional(), URL()]
     )
     genres = SelectMultipleField(
         # TODO implement enum restriction
@@ -117,7 +131,7 @@ class VenueForm(Form):
         'facebook_link', validators=[URL()]
     )
     website_link = StringField(
-        'website_link'
+        'website_link', validators=[Optional(), URL()]
     )
 
     seeking_talent = BooleanField( 'seeking_talent' )
@@ -193,7 +207,7 @@ class ArtistForm(Form):
     )
     phone = StringField(
         # TODO implement validation logic for state
-        'phone'
+        'phone', validators=[Optional(), isValidPhone, isValidPhoneState]
     )
     image_link = StringField(
         'image_link'
@@ -236,4 +250,3 @@ class ArtistForm(Form):
     seeking_description = StringField(
             'seeking_description'
      )
-
