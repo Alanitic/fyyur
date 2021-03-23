@@ -27,7 +27,11 @@ def create_app(test_config=None):
   Create an endpoint to handle GET requests 
   for all available categories.
   '''
-
+    @app.route('/categories')
+    def get_categories():
+        categories = Category.query.all()
+        formatted_category = [category.format() for category in categories]
+        return jsonify({'data': formatted_category})
     '''
   @TODO: 
   Create an endpoint to handle GET requests for questions, 
@@ -40,7 +44,11 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
   '''
-
+    @app.route('/questions')
+    def get_questions():
+        questions = Question.query.all()
+        formatted_questions = [question.format() for question in questions]
+        return jsonify({'data': formatted_questions})
     '''
   @TODO: 
   Create an endpoint to DELETE question using a question ID. 
