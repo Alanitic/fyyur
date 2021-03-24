@@ -43,8 +43,13 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().get('/questions')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
-        self.assertTrue(data['data'])
+        self.assertTrue(data['questions'])
 
+    def test_get_questions_beyond_valid_page(self):
+        res = self.client().get('/questions/?=1000')
+        data = json.loads(res.data)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(res.status_code, 404)
 
 # Make the tests conveniently executable
 if __name__ == "__main__":

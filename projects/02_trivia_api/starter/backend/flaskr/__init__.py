@@ -46,9 +46,20 @@ def create_app(test_config=None):
   '''
     @app.route('/questions')
     def get_questions():
-        questions = Question.query.all()
-        formatted_questions = [question.format() for question in questions]
-        return jsonify({'data': formatted_questions})
+        page = request.args.get('page', 1, int)
+        questions = Question.query.order_by(Question.id.desc()).paginate(page, QUESTIONS_PER_PAGE, error_out=False)
+        categories = Category.query.all()
+        if questions is None or categories is None:
+            abort(404)
+        else:
+            formatted_questions = [question.format() for question in questions.items]
+            formatted_categories = {category.id: category.type for category in categories}
+            return jsonify({
+                'questions': formatted_questions,
+                'total_questions': len(formatted_questions),
+                'categories': formatted_categories,
+                'current_category': ''
+            })
     '''
   @TODO: 
   Create an endpoint to DELETE question using a question ID. 
@@ -105,5 +116,13 @@ def create_app(test_config=None):
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
+
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({
+            "success": False,
+            "error": 404,
+            "message": "Not found"
+        }), 404
 
     return app
