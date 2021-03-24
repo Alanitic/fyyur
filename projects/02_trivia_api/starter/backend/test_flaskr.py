@@ -37,13 +37,14 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().get('/categories')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
-        self.assertTrue(data['data'])
+        self.assertTrue(data['categories'])
 
     def test_get_questions(self):
         res = self.client().get('/questions')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertTrue(data['questions'])
+        self.assertTrue(data['categories'])
 
     def test_get_questions_beyond_valid_page(self):
         res = self.client().get('/questions/?=1000')

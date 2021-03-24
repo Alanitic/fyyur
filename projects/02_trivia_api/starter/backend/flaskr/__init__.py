@@ -30,8 +30,8 @@ def create_app(test_config=None):
     @app.route('/categories')
     def get_categories():
         categories = Category.query.all()
-        formatted_category = [category.format() for category in categories]
-        return jsonify({'data': formatted_category})
+        formatted_category = {category.id: category.type for category in categories}
+        return jsonify({'categories': formatted_category})
     '''
   @TODO: 
   Create an endpoint to handle GET requests for questions, 
@@ -79,6 +79,29 @@ def create_app(test_config=None):
   of the questions list in the "List" tab.  
   '''
 
+    @app.route('/questions', methods=['POST'])
+    def create_question():
+        data = request.get_json()
+        if not data:
+            abort(400)
+        question = data.get('question')
+        answer = data.get('answer')
+        difficulty = data.get('difficulty')
+        category = data.get('category')
+        if question and answer and difficulty and category:
+            newQuestion = Question(
+                question=question,
+                answer=answer,
+                difficulty=difficulty,
+                category=category
+            )
+            newQuestion.insert()
+        else:
+            abort(400)
+        return jsonify({
+            'success': True,
+        })
+
     '''
   @TODO: 
   Create a POST endpoint to get questions based on a search term. 
@@ -124,5 +147,13 @@ def create_app(test_config=None):
             "error": 404,
             "message": "Not found"
         }), 404
+
+    @app.errorhandler(400)
+    def not_found(error):
+        return jsonify({
+            "success": False,
+            "error": 400,
+            "message": "Bad request"
+        }), 400
 
     return app
