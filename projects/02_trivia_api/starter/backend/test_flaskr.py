@@ -58,6 +58,12 @@ class TriviaTestCase(unittest.TestCase):
         data = json.loads(res.data)
         self.assertEqual(data['success'], True)
 
+    def test_create_question_missing_data(self):
+        sent = {'question': 'ejemplo 2', 'answer': 'prueba2', 'difficulty': 1}
+        res = self.client().post('/questions', json=sent)
+        data = json.loads(res.data)
+        self.assertEqual(data['success'], False)
+        
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
