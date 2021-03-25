@@ -53,14 +53,14 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 404)
 
     def test_create_question(self):
-        sent = {'question': 'ejemplo 2', 'answer': 'prueba2', 'difficulty': 1, 'category': 1}
+        sent = {'question': 'this is just a test', 'answer': 'dummy answer', 'difficulty': 1, 'category': 1}
         res = self.client().post('/questions', json=sent)
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
 
     def test_create_question_missing_data(self):
-        sent = {'question': 'ejemplo 2', 'answer': 'prueba2', 'difficulty': 1}
+        sent = {'question': 'this is just a test', 'answer': 'dummy answer', 'difficulty': 1}
         res = self.client().post('/questions', json=sent)
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 400)
