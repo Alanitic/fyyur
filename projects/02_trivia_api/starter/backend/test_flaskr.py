@@ -56,23 +56,41 @@ class TriviaTestCase(unittest.TestCase):
         sent = {'question': 'ejemplo 2', 'answer': 'prueba2', 'difficulty': 1, 'category': 1}
         res = self.client().post('/questions', json=sent)
         data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
 
     def test_create_question_missing_data(self):
         sent = {'question': 'ejemplo 2', 'answer': 'prueba2', 'difficulty': 1}
         res = self.client().post('/questions', json=sent)
         data = json.loads(res.data)
+        self.assertEqual(res.status_code, 400)
         self.assertEqual(data['success'], False)
 
     def test_delete_question(self):
         id = Question.query.with_entities(Question.id).order_by(Question.id.desc()).first()
         res = self.client().delete('/questions/{}'.format(id[0]))
         data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
 
     def test_delete_question_invalid_id(self):
         res = self.client().delete('/questions/10000')
         data = json.loads(res.data)
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+
+    def test_search_question(self):
+        search = {"searchTerm": "ancient"}
+        res = self.client().post('/questions', json=search)
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+
+    def test_search_invalid_question(self):
+        search = {"searchTerm": "should not exist"}
+        res = self.client().post('/questions', json=search)
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 404)
         self.assertEqual(data['success'], False)
 
 # Make the tests conveniently executable

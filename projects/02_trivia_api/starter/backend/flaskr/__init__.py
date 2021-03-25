@@ -44,35 +44,22 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
   '''
-    @app.route('/questions', methods=['GET', 'POST'])
+    @app.route('/questions', methods=['GET'])
     def get_questions():
         page = request.args.get('page', 1, int)
-        data = request.get_json()
-        if data:
-            search = data.get('searchTerm', None)
-            questions = Question.query.filter(Question.question.ilike('%{}%'.format(search))).all()
-            if not questions:
-                abort(404)
-            formatted_questions = [question.format() for question in questions]
+        questions = Question.query.order_by(Question.id.desc()).paginate(page, QUESTIONS_PER_PAGE, error_out=False)
+        categories = Category.query.all()
+        if not questions.items or not categories:
+            abort(404)
+        else:
+            formatted_questions = [question.format() for question in questions.items]
+            formatted_categories = {category.id: category.type for category in categories}
             return jsonify({
                 'questions': formatted_questions,
                 'total_questions': Question.query.count(),
+                'categories': formatted_categories,
                 'current_category': None
             })
-        else:
-            questions = Question.query.order_by(Question.id.desc()).paginate(page, QUESTIONS_PER_PAGE, error_out=False)
-            categories = Category.query.all()
-            if not questions.items or not categories:
-                abort(404)
-            else:
-                formatted_questions = [question.format() for question in questions.items]
-                formatted_categories = {category.id: category.type for category in categories}
-                return jsonify({
-                    'questions': formatted_questions,
-                    'total_questions': Question.query.count(),
-                    'categories': formatted_categories,
-                    'current_category': None
-                })
     '''
   @TODO: 
   Create an endpoint to DELETE question using a question ID. 
@@ -108,23 +95,36 @@ def create_app(test_config=None):
         data = request.get_json()
         if not data:
             abort(400)
-        question = data.get('question')
-        answer = data.get('answer')
-        difficulty = data.get('difficulty')
-        category = data.get('category')
-        if question and answer and difficulty and category:
-            newQuestion = Question(
-                question=question,
-                answer=answer,
-                difficulty=difficulty,
-                category=category
-            )
-            newQuestion.insert()
+        search = data.get('searchTerm', None)
+        if search:
+            questions = Question.query.filter(Question.question.ilike('%{}%'.format(search))).all()
+            if not questions:
+                abort(404)
+            formatted_questions = [question.format() for question in questions]
+            return jsonify({
+                'success': True,
+                'questions': formatted_questions,
+                'total_questions': Question.query.count(),
+                'current_category': None
+            })
         else:
-            abort(400)
-        return jsonify({
-            'success': True,
-        })
+            question = data.get('question')
+            answer = data.get('answer')
+            difficulty = data.get('difficulty')
+            category = data.get('category')
+            if question and answer and difficulty and category:
+                newQuestion = Question(
+                    question=question,
+                    answer=answer,
+                    difficulty=difficulty,
+                    category=category
+                )
+                newQuestion.insert()
+            else:
+                abort(400)
+            return jsonify({
+                'success': True,
+            })
 
     '''
   @TODO: 
