@@ -89,6 +89,125 @@ GET '/categories'
 
 ```
 
+## Endpoints
+| Method | Endpoint | Description | Arguments |
+| ------ | -------- | ----------- | --------- |
+| GET | /categories | Fetches all existing categories and returned as JSON | None |
+| GET | /questions  | Fetches all existing questions from any category, only 10 questions at a time | None |
+| DELETE | /questions/<question_id> | Remove question based on id | Question id |
+| POST | /questions | If search parameter is being sent it will look for a question based on a search term. Otherwise a question is created | search_term question answer difficulty category |
+| GET | /categories/<int:category_id>/questions | Gets questions based on category | Category id |
+| POST | /quizzes | Gets random questions based on a category. If no category is being provided returns a random question from any category | Category id |
+
+## Examples
+
+### /Categories
+GET
+```json
+{
+    "categories": {
+        "1": "Science",
+        "2": "Art",
+        "3": "Geography",
+        "4": "History",
+        "5": "Entertainment",
+        "6": "Sports"
+    }
+}
+```
+
+### /questions
+GET
+```json
+{
+  "categories": {
+    "1": "Science",
+    "2": "Art",
+    "3": "Geography",
+    "4": "History",
+    "5": "Entertainment",
+    "6": "Sports"
+  },
+  "current_category": null,
+  "questions": [
+    {
+      "answer": "Scarab",
+      "category": 4,
+      "difficulty": 4,
+      "id": 23,
+      "question": "Which dung beetle was worshipped by the ancient Egyptians?"
+    }
+  ],
+  "total_questions": 19
+}
+```
+
+### /questions/<question_id>
+DELETE
+````json
+{
+    "success": true
+}
+````
+
+### /questions
+POST (Create)
+````json
+{
+  "success": true
+}
+````
+POST (Search)
+````json
+{
+    "current_category": null,
+    "questions": [
+        {
+            "answer": "Dummy answer",
+            "category": 2,
+            "difficulty": 1,
+            "id": 43,
+            "question": "Example question"
+        }
+    ],
+    "success": true,
+    "total_questions": 1
+}
+````
+
+### /categories/<int:category_id>/questions
+GET
+````json
+{
+    "current_category": "1",
+    "questions": [
+        {
+            "answer": "The Liver",
+            "category": 1,
+            "difficulty": 4,
+            "id": 20,
+            "question": "What is the heaviest organ in the human body?"
+        }
+    ],
+    "success": true,
+    "total_questions": 1
+}
+````
+
+### /quizzes
+POST
+```json
+{
+    "question": {
+        "answer": "Blood",
+        "category": 1,
+        "difficulty": 4,
+        "id": 22,
+        "question": "Hematology is a branch of medicine involving the study of what?"
+    },
+    "success": true
+}
+```
 
 ## Testing
 To run the tests, run
