@@ -17,11 +17,13 @@ def create_app(test_config=None):
     '''
   @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
   '''
-
+    CORS(app, resources={r"/*": {"origins": "*"}})
     '''
   @TODO: Use the after_request decorator to set Access-Control-Allow
   '''
-
+    @app.after_request
+    def after_request(response):
+        response.headers.add("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
     '''
   @TODO: 
   Create an endpoint to handle GET requests 
@@ -145,6 +147,19 @@ def create_app(test_config=None):
   categories in the left column will cause only questions of that 
   category to be shown. 
   '''
+    @app.route('/categories/<category_id>/questions')
+    def get_by_category(category_id):
+        questions = Question.query.filter_by(category=category_id).all()
+        if not questions:
+            abort(404)
+        formatted_questions = [question.format() for question in questions]
+        # category = Category.query.with_entities(Category.type).filter_by(id=category_id).one_or_none()
+        return jsonify({
+            'success': True,
+            'questions': formatted_questions,
+            'total_questions': len(formatted_questions),
+            'current_category': category_id
+        })
 
     '''
   @TODO: 
@@ -157,6 +172,32 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
   '''
+
+    @app.route('/quizzes', methods=['POST'])
+    def get_quiz_quiestion():
+        data = request.get_json()
+        formatted_question = None
+        if not data:
+            abort(400)
+        category = data.get('quiz_category').get('id')
+        previous = data.get('previous_questions')
+        category_exist = Category.query.with_entities(Category.id).filter_by(id=category).first() is not None
+        if category_exist:
+            nquestion = Question.query.filter_by(category=category).filter(Question.id.notin_(previous)).count()
+            if nquestion != 0:
+                rand = random.randrange(0, nquestion)
+                question = Question.query.filter_by(category=category).filter(Question.id.notin_(previous))[rand]
+                formatted_question = question.format()
+        else:
+            nquestion = Question.query.filter(Question.id.notin_(previous)).count()
+            if nquestion != 0:
+                rand = random.randrange(0, nquestion)
+                question = Question.query.filter(Question.id.notin_(previous))[rand]
+                formatted_question = question.format()
+        return jsonify({
+            'question': formatted_question,
+            'success': True
+        })
 
     '''
   @TODO: 
