@@ -23,6 +23,7 @@ def create_app(test_config=None):
   '''
     @app.after_request
     def after_request(response):
+        # Allowing specific methods on CORS
         response.headers.add("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
         return response
     '''
@@ -32,7 +33,9 @@ def create_app(test_config=None):
   '''
     @app.route('/categories')
     def get_categories():
+        # Retrieving all categories from DB
         categories = Category.query.all()
+        # Formatting categories so they can be parsed as JSON
         formatted_category = {category.id: category.type for category in categories}
         return jsonify({'categories': formatted_category})
     '''
@@ -49,12 +52,16 @@ def create_app(test_config=None):
   '''
     @app.route('/questions', methods=['GET'])
     def get_questions():
+        # Page is being received as parameter
         page = request.args.get('page', 1, int)
+        # Using SQLAlchemy paginate avoiding retrieving all questions at once
         questions = Question.query.order_by(Question.id.desc()).paginate(page, QUESTIONS_PER_PAGE, error_out=False)
         categories = Category.query.all()
         if not questions.items or not categories:
+            # If page is out of index a not found status code is returned
             abort(404)
         else:
+            # Formatting questions and categories so they can be parsed as JSON
             formatted_questions = [question.format() for question in questions.items]
             formatted_categories = {category.id: category.type for category in categories}
             return jsonify({
@@ -73,10 +80,12 @@ def create_app(test_config=None):
 
     @app.route('/questions/<question_id>', methods=['DELETE'])
     def delete_question(question_id):
+        # Getting the question to delete
         question = Question.query.get(question_id)
         if not question:
+            # If no question found a not found status code is returned
             abort(404)
-
+        # Deleting question from DB
         question.delete()
         return jsonify({
             'success': True,
@@ -95,11 +104,14 @@ def create_app(test_config=None):
 
     @app.route('/questions', methods=['POST'])
     def create_question():
+        # Data is being sent within body
         data = request.get_json()
         if not data:
             abort(400)
+        # Same route and method is being used for searching a question and creating a new one
         search = data.get('searchTerm', None)
         if search:
+            # Seeking question in DB as case insensitive
             questions = Question.query.filter(Question.question.ilike('%{}%'.format(search))).all()
             if not questions:
                 abort(404)
@@ -111,10 +123,12 @@ def create_app(test_config=None):
                 'current_category': None
             })
         else:
+            # This endpoint has being called to create a new question
             question = data.get('question')
             answer = data.get('answer')
             difficulty = data.get('difficulty')
             category = data.get('category')
+            # Checking there is no missing data
             if question and answer and difficulty and category:
                 newQuestion = Question(
                     question=question,
@@ -150,11 +164,11 @@ def create_app(test_config=None):
   '''
     @app.route('/categories/<category_id>/questions')
     def get_by_category(category_id):
+        # Retrieving questions from DB based on a category ID
         questions = Question.query.filter_by(category=category_id).all()
         if not questions:
             abort(404)
         formatted_questions = [question.format() for question in questions]
-        # category = Category.query.with_entities(Category.type).filter_by(id=category_id).one_or_none()
         return jsonify({
             'success': True,
             'questions': formatted_questions,
@@ -176,22 +190,28 @@ def create_app(test_config=None):
 
     @app.route('/quizzes', methods=['POST'])
     def get_quiz_quiestion():
+        # Data is being sent within body
         data = request.get_json()
         formatted_question = None
         if not data:
             abort(400)
         category = data.get('quiz_category').get('id')
         previous = data.get('previous_questions')
+        # If no valid category was sent, returning random question from any category
         category_exist = Category.query.with_entities(Category.id).filter_by(id=category).first() is not None
         if category_exist:
+            # Verifying there are some questions left within specified category
             nquestion = Question.query.filter_by(category=category).filter(Question.id.notin_(previous)).count()
             if nquestion != 0:
+                # Retrieving random question that has not been sent before
                 rand = random.randrange(0, nquestion)
                 question = Question.query.filter_by(category=category).filter(Question.id.notin_(previous))[rand]
                 formatted_question = question.format()
-        else:
+        else: # No valid category was received
+            # Verifying there are some questions left to return
             nquestion = Question.query.filter(Question.id.notin_(previous)).count()
             if nquestion != 0:
+                # Retrieving random question that has not been sent before
                 rand = random.randrange(0, nquestion)
                 question = Question.query.filter(Question.id.notin_(previous))[rand]
                 formatted_question = question.format()
@@ -208,6 +228,7 @@ def create_app(test_config=None):
 
     @app.errorhandler(404)
     def not_found(error):
+        # Handling error return to be JSON format
         return jsonify({
             "success": False,
             "error": 404,
@@ -216,6 +237,7 @@ def create_app(test_config=None):
 
     @app.errorhandler(400)
     def not_found(error):
+        # Handling error return to be JSON format
         return jsonify({
             "success": False,
             "error": 400,
