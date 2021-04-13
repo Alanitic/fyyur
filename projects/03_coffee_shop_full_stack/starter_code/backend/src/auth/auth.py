@@ -86,7 +86,7 @@ def check_permissions(permission, payload):
         raise AuthError({
             'code': 'invalid_payload',
             'description': 'Insufficient permission.'
-        }, 403)
+        }, 401)
     return True
 
 '''

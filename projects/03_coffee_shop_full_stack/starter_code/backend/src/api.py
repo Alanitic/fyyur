@@ -116,18 +116,20 @@ def update_drink(jwt, drink_id):
     data = request.get_json()
     title = data.get('title', None)
     recipe = data.get('recipe', None)
-    if not title or not recipe:
+    if not title and not recipe:
         abort(400)
     if not drink:
         abort(404)
-    drink.title = title
-    drink.recipe = json.dumps(recipe)
+    if not title:
+        drink.title = title
+    if not recipe:
+        drink.recipe = json.dumps(recipe)
     drink.update()
 
     return jsonify(
         {
             "success": True,
-            "drinks": drink.long()
+            "drinks": [drink.long()]
         }
     )
 
