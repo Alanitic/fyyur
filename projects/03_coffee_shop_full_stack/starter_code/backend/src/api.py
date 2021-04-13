@@ -142,6 +142,20 @@ def update_drink(jwt, drink_id):
         or appropriate status code indicating reason for failure
 '''
 
+
+@app.route('/drinks/<drink_id>', methods=['DELETE'])
+@requires_auth('delete:drinks')
+def delete_drink(jwt, drink_id):
+    drink = Drink.query.filter_by(id=drink_id).first()
+    if not drink:
+        abort(404)
+    drink.delete()
+    return jsonify({
+        "success": True,
+        "delete": drink.id
+    })
+
+
 ## Error Handling
 '''
 Example error handling for unprocessable entity
