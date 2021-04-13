@@ -52,7 +52,8 @@ def get_drinks():
 
 
 @app.route('/drinks-detail', methods=['GET'])
-def get_drinks_detail():
+@requires_auth('get:drinks-detail')
+def get_drinks_detail(jwt):
     drinks = Drink.query.all()
     formatted_drinks = [d.long() for d in drinks]
     return jsonify(
@@ -92,7 +93,7 @@ def create_drink(jwt):
             "success": True,
             "drinks": drink.long()
         }
-    )
+    ), 201
 
 
 '''
@@ -187,7 +188,38 @@ def unprocessable(error):
     error handler should conform to general task above 
 '''
 
+
+@app.errorhandler(400)
+def not_found(error):
+    # Handling error return to be JSON format
+    return jsonify({
+        "success": False,
+        "error": 400,
+        "message": "Bad request"
+    }), 400
+
+
+@app.errorhandler(404)
+def not_found(error):
+    # Handling error return to be JSON format
+    return jsonify({
+        "success": False,
+        "error": 404,
+        "message": "Not found"
+    }), 404
+
+
 '''
 @TODO implement error handler for AuthError
     error handler should conform to general task above 
 '''
+
+
+@app.errorhandler(AuthError)
+def handle_auth_error(ex):
+    """
+    Receive the raised authorization error and propagates it as response
+    """
+    response = jsonify(ex.error)
+    response.status_code = ex.status_code
+    return response
