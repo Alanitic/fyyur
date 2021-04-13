@@ -16,7 +16,7 @@ CORS(app)
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 '''
-db_drop_and_create_all()
+# db_drop_and_create_all()
 
 ## ROUTES
 '''
@@ -77,12 +77,20 @@ def get_drinks_detail():
 @app.route('/drinks', methods=['POST'])
 @requires_auth('post:drinks')
 def create_drink(jwt):
-    drinks = Drink.query.all()
-    formatted_drinks = [d.short() for d in drinks]
+    data = request.get_json()
+    title = data.get('title', None)
+    recipe = data.get('recipe', None)
+    if not title or not recipe:
+        abort(400)
+    drink = Drink(
+        title=title,
+        recipe=json.dumps(recipe)
+    )
+    drink.insert()
     return jsonify(
         {
             "success": True,
-            "drinks": formatted_drinks
+            "drinks": drink.long()
         }
     )
 
@@ -98,6 +106,30 @@ def create_drink(jwt):
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
         or appropriate status code indicating reason for failure
 '''
+
+
+@app.route('/drinks/<drink_id>', methods=['PATCH'])
+@requires_auth('patch:drinks')
+def update_drink(jwt, drink_id):
+    drink = Drink.query.filter_by(id=drink_id).first()
+    data = request.get_json()
+    title = data.get('title', None)
+    recipe = data.get('recipe', None)
+    if not title or not recipe:
+        abort(400)
+    if not drink:
+        abort(404)
+    drink.title = title
+    drink.recipe = json.dumps(recipe)
+    drink.update()
+
+    return jsonify(
+        {
+            "success": True,
+            "drinks": drink.long()
+        }
+    )
+
 
 '''
 @TODO implement endpoint
