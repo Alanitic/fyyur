@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer
+from sqlalchemy import Column, Integer, String, DateTime
 from flask_migrate import Migrate
 
 database_name = "capstone"
@@ -23,6 +23,11 @@ def setup_db(app, db_path=database_path):
 
 class Movie(db.Model):
     id = Column(Integer, primary_key=True)
+    title = Column(String)
+    releaseDate = Column(DateTime)
+
+    def __init__(self, id):
+        self.id = id
 
     def insert(self):
         db.session.add(self)
@@ -38,6 +43,12 @@ class Movie(db.Model):
 
 class Actor(db.Model):
     id = Column(Integer, primary_key=True)
+    name = Column(String)
+    age = Column(Integer)
+    gender = Column(String)
+
+    def __init__(self, id):
+        self.id = id
 
     def insert(self):
         db.session.add(self)
