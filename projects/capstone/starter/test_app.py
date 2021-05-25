@@ -31,4 +31,4 @@ class CastingAgency(unittest.TestCase):
         res = self.client().get('/actors')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
-        self.assertTrue(data['categories'])
+        self.assertTrue(data['actors'])
