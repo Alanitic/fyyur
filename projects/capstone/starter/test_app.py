@@ -32,3 +32,13 @@ class CastingAgency(unittest.TestCase):
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertTrue(data['actors'])
+
+    def test_post_actor(self):
+        sent = {'age': 25,
+                'gender': "Male",
+                'id': 1,
+                'name': "Alan"}
+        res = self.client().post('/actors', json=sent)
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
