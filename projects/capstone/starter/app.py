@@ -23,7 +23,7 @@ def create_app(test_config=None):
         # Data is being sent within body
         data = request.get_json()
         if not data:
-            abort(400)
+            abort(400, 'No data provided')
         name = data.get('name')
         age = data.get('age')
         gender = data.get('gender')
@@ -35,7 +35,7 @@ def create_app(test_config=None):
             )
             new_actor.insert()
         else:
-            abort(400)
+            abort(400, 'Name, age and gender are required')
         return jsonify({
             'success': True,
         })
@@ -47,6 +47,15 @@ def create_app(test_config=None):
         # Formatting movies so they can be parsed as JSON
         formatted_movies = [movie.format() for movie in movies]
         return jsonify({'movies': formatted_movies})
+
+    @app.errorhandler(400)
+    def not_found(error):
+        # Handling error return to be JSON format
+        return jsonify({
+            "success": False,
+            "error": 400,
+            "message": error.description
+        }), 400
 
     return app
 
