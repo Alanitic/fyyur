@@ -39,7 +39,6 @@ class CastingAgency(unittest.TestCase):
         """Successfully creates a new actor"""
         sent = {'age': 25,
                 'gender': "Male",
-                'id': 1,
                 'name': "Alan"}
         res = self.client().post('/actors', json=sent)
         data = json.loads(res.data)
@@ -52,6 +51,13 @@ class CastingAgency(unittest.TestCase):
             'name': 'Example'
         }
         res = self.client().patch('/actors/1', json=sent)
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+
+    def test_delete_actor(self):
+        """Successfully deletes actor with id 2"""
+        res = self.client().delete('actors/2')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)

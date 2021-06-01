@@ -65,6 +65,18 @@ def create_app(test_config=None):
             'actor': formatted_actor
         })
 
+    @app.route('/actors/<actor_id>', methods=['DELETE'])
+    def delete_actor(actor_id):
+        actor = Actor.query.get(actor_id)
+        if not actor:
+            abort(404, 'No actor found with provided id')
+        formatted_actor = actor.format()
+        actor.delete()
+        return jsonify({
+            'success': True,
+            'actor': formatted_actor
+        })
+
     @app.route('/movies')
     def get_movies():
         # Retrieving all movies from DB
