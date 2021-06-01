@@ -3,6 +3,7 @@ import json
 from flask_sqlalchemy import SQLAlchemy
 from app import create_app
 from models import setup_db
+from datetime import datetime
 
 
 class CastingAgency(unittest.TestCase):
@@ -28,17 +29,45 @@ class CastingAgency(unittest.TestCase):
         pass
 
     def test_get_actors(self):
+        """Successfully retrieves all actors"""
         res = self.client().get('/actors')
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertTrue(data['actors'])
 
     def test_post_actor(self):
+        """Successfully creates a new actor"""
         sent = {'age': 25,
                 'gender': "Male",
                 'id': 1,
                 'name': "Alan"}
         res = self.client().post('/actors', json=sent)
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+
+    def test_update_actor(self):
+        """Successfully updates actor with id 1"""
+        sent = {
+            'name': 'Example'
+        }
+        res = self.client().patch('/actors/1', json=sent)
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+
+    def test_get_movies(self):
+        """Successfully retrieves all movies"""
+        res = self.client().get('/movies')
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(data['movies'])
+
+    def test_post_movie(self):
+        """Successfully creates a new movie"""
+        sent = {'title': 'Flaskman',
+                'release_date': datetime.today()}
+        res = self.client().post('/movies', json=sent)
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)

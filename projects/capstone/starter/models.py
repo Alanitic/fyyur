@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, DateTime
 from flask_migrate import Migrate
 
 database_name = "capstone"
-database_path = "postgres://{}/{}".format('localhost:5432', database_name)
+database_path = "postgresql://{}/{}".format('localhost:5432', database_name)
 
 db = SQLAlchemy()
 
@@ -26,8 +26,9 @@ class Movie(db.Model):
     title = Column(String)
     releaseDate = Column(DateTime)
 
-    def __init__(self, id):
-        self.id = id
+    def __init__(self, title, release_date):
+        self.title = title
+        self.releaseDate = release_date
 
     def insert(self):
         db.session.add(self)

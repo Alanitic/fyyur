@@ -40,6 +40,31 @@ def create_app(test_config=None):
             'success': True,
         })
 
+    @app.route('/actors/<actor_id>', methods=['PATCH'])
+    def update_actor(actor_id):
+        actor = None
+        data = request.get_json()
+        if not data:
+            abort(400, 'No data were provided')
+        name = data.get('name')
+        age = data.get('age')
+        gender = data.get('gender')
+        if name or age or gender:
+            actor = Actor.query.get(actor_id)
+        else:
+            abort(400, 'No data to update')
+        if not actor:
+            abort(404, 'No actor found with provided id')
+        actor.name = name or actor.name
+        actor.age = age or actor.age
+        actor.gender = gender or actor.gender
+        actor.update()
+        formatted_actor = actor.format()
+        return jsonify({
+            'success': True,
+            'actor': formatted_actor
+        })
+
     @app.route('/movies')
     def get_movies():
         # Retrieving all movies from DB
@@ -47,6 +72,23 @@ def create_app(test_config=None):
         # Formatting movies so they can be parsed as JSON
         formatted_movies = [movie.format() for movie in movies]
         return jsonify({'movies': formatted_movies})
+
+    @app.route('/movies', methods=['POST'])
+    def post_movies():
+        # Data is being sent within body
+        data = request.get_json()
+        if not data:
+            abort(400, 'No data provided')
+        title = data.get('title')
+        release = data.get('release_date')
+        if title and release:
+            new_movie = Movie(title, release)
+            new_movie.insert()
+        else:
+            abort(400, 'title and release date are required')
+        return jsonify({
+            'success': True,
+        })
 
     @app.errorhandler(400)
     def not_found(error):
@@ -56,6 +98,15 @@ def create_app(test_config=None):
             "error": 400,
             "message": error.description
         }), 400
+
+    @app.errorhandler(404)
+    def not_found(error):
+        # Handling error return to be JSON format
+        return jsonify({
+            "success": False,
+            "error": 404,
+            "message": error.description
+        }), 404
 
     return app
 
