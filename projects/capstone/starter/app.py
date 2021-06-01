@@ -90,6 +90,29 @@ def create_app(test_config=None):
             'success': True,
         })
 
+    @app.route('/movies/<movie_id>', methods=['PATCH'])
+    def update_movie(movie_id):
+        movie = None
+        data = request.get_json()
+        if not data:
+            abort(400, 'No data were provided')
+        title = data.get('title')
+        release_date = data.get('release_date')
+        if title or release_date:
+            movie = Movie.query.get(movie_id)
+        else:
+            abort(400, 'No data to update')
+        if not movie:
+            abort(404, 'No movie found with provided id')
+        movie.title = title or movie.title
+        movie.releaseDate = release_date or movie.releaseDate
+        movie.update()
+        formatted_movie = movie.format()
+        return jsonify({
+            'success': True,
+            'movie': formatted_movie
+        })
+
     @app.errorhandler(400)
     def not_found(error):
         # Handling error return to be JSON format

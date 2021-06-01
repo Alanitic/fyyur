@@ -71,3 +71,11 @@ class CastingAgency(unittest.TestCase):
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
+
+    def test_update_movie(self):
+        """Successfully updates movie with id 1"""
+        sent = {"title": "Example"}
+        res = self.client().patch('/movies/1', json=sent)
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
