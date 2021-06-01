@@ -125,8 +125,20 @@ def create_app(test_config=None):
             'movie': formatted_movie
         })
 
+    @app.route('/movies/<movie_id>', methods=['DELETE'])
+    def delete_movie(movie_id):
+        movie = Movie.query.get(movie_id)
+        if not movie:
+            abort(404, 'No movie found with provided id')
+        formatted_movie = movie.format()
+        movie.delete()
+        return jsonify({
+            'success': True,
+            'actor': formatted_movie
+        })
+
     @app.errorhandler(400)
-    def not_found(error):
+    def bad_request(error):
         # Handling error return to be JSON format
         return jsonify({
             "success": False,
