@@ -1,25 +1,28 @@
-import os
 from flask import Flask, request, abort, jsonify
 from flask_cors import CORS
 from models import setup_db, Actor, Movie
+from auth.auth import AuthError, requires_auth
 
 
-def create_app(test_config=None):
+def create_app():
     # create and configure the app
     app = Flask(__name__)
     CORS(app)
-    setup_db(app)
 
     @app.route('/actors')
-    def get_actors():
+    @requires_auth('get:actors')
+    def get_actors(jwt):
         # Retrieving all actors from DB
         actors = Actor.query.all()
         # Formatting actors so they can be parsed as JSON
         formatted_actors = [actor.format() for actor in actors]
         return jsonify({'actors': formatted_actors})
 
+    setup_db(app)
+
     @app.route('/actors', methods=['POST'])
-    def post_actors():
+    @requires_auth('post:actor')
+    def post_actors(jwt):
         # Data is being sent within body
         data = request.get_json()
         if not data:
@@ -41,7 +44,8 @@ def create_app(test_config=None):
         })
 
     @app.route('/actors/<actor_id>', methods=['PATCH'])
-    def update_actor(actor_id):
+    @requires_auth('patch:actor')
+    def update_actor(jwt, actor_id):
         actor = None
         data = request.get_json()
         if not data:
@@ -66,7 +70,8 @@ def create_app(test_config=None):
         })
 
     @app.route('/actors/<actor_id>', methods=['DELETE'])
-    def delete_actor(actor_id):
+    @requires_auth('delete:actor')
+    def delete_actor(jwt, actor_id):
         actor = Actor.query.get(actor_id)
         if not actor:
             abort(404, 'No actor found with provided id')
@@ -78,7 +83,8 @@ def create_app(test_config=None):
         })
 
     @app.route('/movies')
-    def get_movies():
+    @requires_auth('get:movies')
+    def get_movies(jwt):
         # Retrieving all movies from DB
         movies = Movie.query.all()
         # Formatting movies so they can be parsed as JSON
@@ -86,6 +92,7 @@ def create_app(test_config=None):
         return jsonify({'movies': formatted_movies})
 
     @app.route('/movies', methods=['POST'])
+    @requires_auth('post:movie')
     def post_movies():
         # Data is being sent within body
         data = request.get_json()
@@ -103,6 +110,7 @@ def create_app(test_config=None):
         })
 
     @app.route('/movies/<movie_id>', methods=['PATCH'])
+    @requires_auth('patch:movie')
     def update_movie(movie_id):
         movie = None
         data = request.get_json()
@@ -126,6 +134,7 @@ def create_app(test_config=None):
         })
 
     @app.route('/movies/<movie_id>', methods=['DELETE'])
+    @requires_auth('delete:movie')
     def delete_movie(movie_id):
         movie = Movie.query.get(movie_id)
         if not movie:
@@ -154,6 +163,15 @@ def create_app(test_config=None):
             "error": 404,
             "message": error.description
         }), 404
+
+    @app.errorhandler(AuthError)
+    def handle_auth_error(ex):
+        """
+        Receive the raised authorization error and propagates it as response
+        """
+        response = jsonify(ex.error)
+        response.status_code = ex.status_code
+        return response
 
     return app
 
